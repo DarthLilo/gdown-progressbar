@@ -110,6 +110,11 @@ id = "15uNXeRBIhVvZJIhL4yTw4IsStMhUaaxl"
 gdown.download_folder(id=id)
 ```
 
+## Lilo's Changes
+I added a "bar" paraemter to the download function which will disable printing to the console and instead trigger a user set function with two inputs; current progress and total size.
+
+Every time a chunk has finished downloading it will call this function with the new values which can be used to calculate a percentage and update a progress bar.
+
 
 ## FAQ
 

@@ -130,6 +130,10 @@ def main():
         "--user-agent",
         help="User-Agent to use for downloading file.",
     )
+    parser.add_argument(
+        "--bar",
+        help="Takes a function that can take two inputs, a current progress int, and a total size int"
+    )
 
     args = parser.parse_args()
 
@@ -182,6 +186,7 @@ def main():
                 resume=args.continue_,
                 format=args.format,
                 user_agent=args.user_agent,
+                bar=args.bar
             )
     except FileURLRetrievalError as e:
         print(e, file=sys.stderr)

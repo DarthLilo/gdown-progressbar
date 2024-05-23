@@ -124,6 +124,7 @@ def download(
     format=None,
     user_agent=None,
     log_messages=None,
+    bar = None
 ):
     """Download file from URL.
 
@@ -158,13 +159,16 @@ def download(
         Format of Google Docs, Spreadsheets and Slides. Default is:
             - Google Docs: 'docx'
             - Google Spreadsheet: 'xlsx'
-            - Google Slides: 'pptx'
+            - Google Slides: 'pptx'\n
     user_agent: str, optional
         User-agent to use in the HTTP request.
     log_messages: dict, optional
         Log messages to customize. Currently it supports:
         - 'start': the message to show the start of the download
-        - 'output': the message to show the output filename
+        - 'output': the message to show the output filename\n
+    bar: function, optional
+        Returns the current progress and total progress as integers for integration into a custom progress bar.
+        Requires two arguments in a function, both are integers.
 
     Returns
     -------
@@ -180,6 +184,8 @@ def download(
         user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36"  # NOQA: E501
     if log_messages is None:
         log_messages = {}
+    if bar is not None and not callable(bar):
+        raise ValueError("Bar should be callable")
 
     url_origin = url
 
@@ -362,19 +368,24 @@ def download(
         total = res.headers.get("Content-Length")
         if total is not None:
             total = int(total) + start_size
-        if not quiet:
+        if not quiet and bar is None:
             pbar = tqdm.tqdm(total=total, unit="B", initial=start_size, unit_scale=True)
         t_start = time.time()
+        chunk_progress = 0
         for chunk in res.iter_content(chunk_size=CHUNK_SIZE):
             f.write(chunk)
             if not quiet:
-                pbar.update(len(chunk))
+                if bar is None:
+                    pbar.update(len(chunk))
+                else:
+                    chunk_progress += len(chunk)
+                    bar(chunk_progress,total)
             if speed is not None:
                 elapsed_time_expected = 1.0 * pbar.n / speed
                 elapsed_time = time.time() - t_start
                 if elapsed_time < elapsed_time_expected:
                     time.sleep(elapsed_time_expected - elapsed_time)
-        if not quiet:
+        if not quiet and bar is None:
             pbar.close()
         if tmp_file:
             f.close()
