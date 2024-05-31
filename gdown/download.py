@@ -124,7 +124,8 @@ def download(
     format=None,
     user_agent=None,
     log_messages=None,
-    bar = None
+    bar = None,
+    popup = False
 ):
     """Download file from URL.
 
@@ -375,11 +376,11 @@ def download(
         for chunk in res.iter_content(chunk_size=CHUNK_SIZE):
             f.write(chunk)
             if not quiet:
-                if bar is None:
+                if not bar and not popup:
                     pbar.update(len(chunk))
                 else:
                     chunk_progress += len(chunk)
-                    bar(chunk_progress,total)
+                    bar(chunk_progress,total,popup)
             if speed is not None:
                 elapsed_time_expected = 1.0 * pbar.n / speed
                 elapsed_time = time.time() - t_start
